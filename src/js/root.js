@@ -20,6 +20,11 @@ require([
   "ojs/ojtoolbar",
   "ojs/ojmenu",
   "ojs/ojtable",
+  "ojs/ojdialog",
+  "oj-c/button",
+  "ojs/ojformlayout",
+  "oj-c/input-text",
+  "oj-c/input-number",
 ], function (Bootstrap, ko, app) {
   // this callback gets executed when all required modules are loaded
   Bootstrap.whenDocumentReady().then(function () {

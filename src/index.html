@@ -86,7 +86,66 @@
         class="oj-web-applayout-max-width oj-web-applayout-content"
       >
         <!-- Place your page content here -->
+        <!-- Start Add User Button -->
+        <div id="dialogWrapper">
+          <oj-dialog
+            id="addUserModalDialog"
+            dialog-title="Add User"
+            aria-describedby="desc"
+            cancel-behavior="icon"
+          >
+            <div slot="body">
+              <oj-form-layout direction="row">
+                <oj-c-input-text
+                  id="userNameInput"
+                  label-hint="Name"
+                  value="{{userName}}"
+                  placeholder="Enter name"
+                  required="true"
+                  required-message-detail="Name is required"
+                ></oj-c-input-text>
+                <oj-c-input-text
+                  id="userEmailInput"
+                  label-hint="Email"
+                  value="{{userEmail}}"
+                  placeholder="Enter email"
+                  required="true"
+                  required-message-detail="Email is required"
+                  validators="[[emailPatternValidator]]"
+                ></oj-c-input-text>
+                <oj-c-input-number
+                  id="userAgeInput"
+                  label-hint="Age"
+                  value="{{userAge}}"
+                  placeholder="Enter age"
+                  required="true"
+                  required-message-detail="Age is required"
+                  max="100"
+                  min="0"
+                  step="1"
+                ></oj-c-input-number>
+              </oj-form-layout>
+            </div>
+            <div slot="footer">
+              <oj-c-button
+                id="submitAddUserButton"
+                on-oj-action="[[submitAddUserButtonClick]]"
+                label="Save"
+              ></oj-c-button>
+            </div>
+          </oj-dialog>
+          <oj-c-button
+            id="addUserButtonOpener"
+            on-oj-action="[[buttonOpenerClick]]"
+            label="Add User"
+          >
+            <span slot="startIcon" class="oj-ux-ico-contact-plus"></span>
+          </oj-c-button>
+        </div>
+        <!-- End Add User Button -->
+
         <!-- Start Table -->
+        <h4 class="oj-web-applayout-title">Users</h4>
         <oj-table
           id="table"
           aria-label="User Table"

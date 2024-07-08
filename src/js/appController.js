@@ -15,13 +15,15 @@ define([
   "knockout",
   "ojs/ojknockout",
   "ojs/ojarraydataprovider",
+  "ojs/ojasyncvalidator-regexp",
 ], function (
   Context,
   ResponsiveUtils,
   ResponsiveKnockoutUtils,
   ko,
   $,
-  ArrayDataProvider
+  ArrayDataProvider,
+  AsyncRegExpValidator
 ) {
   function ControllerViewModel() {
     // Media queries for responsive layouts
@@ -33,6 +35,67 @@ define([
     // Header
     // Application Name used in Branding Area
     this.appName = ko.observable("User Api Demo");
+
+    // Add User Section
+    this.openDialog = ko.observable(false);
+    this.closeDialog = () => {
+      this.openDialog(false);
+    };
+    this.openDialogButton = () => {
+      this.openDialog(true);
+    };
+    this.buttonOpenerClick = () => {
+      this.openDialogButton();
+      document.getElementById("addUserModalDialog").open();
+    };
+    this.submitAddUserButtonClick = () => {
+      const userFormData = {
+        name: this.userName(),
+        email: this.userEmail(),
+        age: this.userAge(),
+      };
+
+      if (
+        !userFormData.name ||
+        !userFormData.email ||
+        !userFormData.age ||
+        isNaN(userFormData.age)
+      ) {
+        alert("Please fill out all fields correctly.");
+        return;
+      }
+
+      fetch("http://localhost:8080/api/v1/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userFormData),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          this.tableUserData.push(data);
+        })
+        .catch((error) => {
+          console.error("Error adding user:", error);
+        });
+
+      this.closeDialog();
+      document.getElementById("addUserModalDialog").close();
+    };
+
+    // User Form
+    this.userName = ko.observable("");
+    this.userEmail = ko.observable("");
+    this.userAge = ko.observable();
+    this.emailPatternValidator = ko.observableArray([
+      new AsyncRegExpValidator({
+        pattern:
+          "[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*",
+        hint: "Enter a valid email format",
+        messageDetail: "Not a valid email format",
+      }),
+    ]);
 
     // Table
     this.tableUserData = ko.observableArray([]);
