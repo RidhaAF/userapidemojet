@@ -45,11 +45,21 @@ define([
     this.openDialogButton = () => {
       this.openDialog(true);
     };
+    this.userDialogTitle = ko.observable("Add User");
+    this.submitUserModalButtonClick = () => {
+      if (this.userDialogTitle() === "Add User") {
+        this.submitAddUserButtonClick();
+      } else {
+        this.submitEditUserButtonClick();
+      }
+    };
 
     // Add User Section
     this.buttonOpenerClick = () => {
       this.openDialogButton();
-      document.getElementById("addUserModalDialog").open();
+      this.userDialogTitle("Add User");
+      this.resetUserForm();
+      document.getElementById("userModalDialog").open();
     };
     this.submitAddUserButtonClick = () => {
       const userFormData = {
@@ -84,10 +94,11 @@ define([
         });
 
       this.closeDialog();
-      document.getElementById("addUserModalDialog").close();
+      document.getElementById("userModalDialog").close();
     };
 
     // User Form
+    this.userId = ko.observable();
     this.userName = ko.observable("");
     this.userEmail = ko.observable("");
     this.userAge = ko.observable();
@@ -99,6 +110,12 @@ define([
         messageDetail: "Not a valid email format",
       }),
     ]);
+    this.resetUserForm = () => {
+      this.userId(null);
+      this.userName("");
+      this.userEmail("");
+      this.userAge(null);
+    };
 
     // Table
     // Table Columns
@@ -135,6 +152,62 @@ define([
     });
 
     // Table Actions
+    // Edit User Button
+    this.editUserButtonOpenerClick = (event, context) => {
+      this.openDialogButton();
+      this.userDialogTitle("Edit User");
+
+      this.userId(context.item.data.id);
+      this.userName(context.item.data.name);
+      this.userEmail(context.item.data.email);
+      this.userAge(context.item.data.age);
+
+      document.getElementById("userModalDialog").open();
+    };
+    this.submitEditUserButtonClick = () => {
+      const userFormData = {
+        id: this.userId(),
+        name: this.userName(),
+        email: this.userEmail(),
+        age: this.userAge(),
+      };
+
+      if (
+        !userFormData.name ||
+        !userFormData.email ||
+        !userFormData.age ||
+        isNaN(userFormData.age)
+      ) {
+        alert("Please fill out all fields correctly.");
+        return;
+      }
+
+      const userId = userFormData.id;
+
+      fetch(`http://localhost:8080/api/v1/users/${userId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userFormData),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          const userIndex = this.tableUserData().findIndex(
+            (user) => user.id === userId
+          );
+          this.tableUserData.splice(userIndex, 1, data);
+        })
+        .finally(() => {
+          this.resetUserForm();
+        })
+        .catch((error) => {
+          console.error("Error updating user:", error);
+        });
+
+      this.closeDialog();
+      document.getElementById("userModalDialog").close();
+    };
     // Delete User Button
     this.deleteUserButtonClick = (event, context) => {
       const confirmText = "Are you sure you want to delete this user?";

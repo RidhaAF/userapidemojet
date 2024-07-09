@@ -89,8 +89,8 @@
         <!-- Start Add User Button -->
         <div id="dialogWrapper">
           <oj-dialog
-            id="addUserModalDialog"
-            dialog-title="Add User"
+            id="userModalDialog"
+            dialog-title="[[userDialogTitle]]"
             aria-describedby="desc"
             cancel-behavior="icon"
           >
@@ -129,7 +129,7 @@
             <div slot="footer">
               <oj-c-button
                 id="submitAddUserButton"
-                on-oj-action="[[submitAddUserButtonClick]]"
+                on-oj-action="[[submitUserModalButtonClick]]"
                 label="Save"
               ></oj-c-button>
             </div>
@@ -160,6 +160,8 @@
           <template slot="actionsTemplate" data-oj-as="cell">
             <oj-c-button
               id="editUserButton"
+              on-oj-action="[[editUserButtonOpenerClick]]"
+              data-oj-clickthrough="disabled"
               chroming="callToAction"
               display="icons"
               label="Edit User"
