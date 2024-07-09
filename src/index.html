@@ -154,20 +154,30 @@
           dnd='{"reorder": {"columns": "enabled"}}'
           scroll-policy="loadMoreOnScroll"
           scroll-policy-options='{"fetchSize": 10}'
-          columns='[{"headerText": "Name", 
-                    "field": "name",
-                    "resizable": "enabled",
-                    "id": "name"},
-                   {"headerText": "Email", 
-                    "field": "email",
-                    "resizable": "enabled",
-                    "id": "email"},
-                   {"headerText": "Age", 
-                    "field": "age",
-                    "resizable": "enabled",
-                    "id": "age"}]'
+          columns="{{columnArray}}"
           class="demo-table-container"
-        ></oj-table>
+        >
+          <template slot="actionsTemplate" data-oj-as="cell">
+            <oj-c-button
+              id="editUserButton"
+              chroming="callToAction"
+              display="icons"
+              label="Edit User"
+            >
+              <span slot="startIcon" class="oj-ux-ico-edit"></span>
+            </oj-c-button>
+            <oj-c-button
+              id="deleteUserButton"
+              on-oj-action="[[deleteUserButtonClick]]"
+              data-oj-clickthrough="disabled"
+              chroming="danger"
+              display="icons"
+              label="Delete User"
+            >
+              <span slot="startIcon" class="oj-ux-ico-trash"></span>
+            </oj-c-button>
+          </template>
+        </oj-table>
         <!-- End Table -->
       </div>
       <footer class="oj-web-applayout-footer" role="contentinfo">

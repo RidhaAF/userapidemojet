@@ -5,6 +5,7 @@
  * as shown at https://oss.oracle.com/licenses/upl/
  * @ignore
  */
+
 /*
  * Your application specific code will go here
  */
@@ -36,7 +37,7 @@ define([
     // Application Name used in Branding Area
     this.appName = ko.observable("User Api Demo");
 
-    // Add User Section
+    // Dialog
     this.openDialog = ko.observable(false);
     this.closeDialog = () => {
       this.openDialog(false);
@@ -44,6 +45,8 @@ define([
     this.openDialogButton = () => {
       this.openDialog(true);
     };
+
+    // Add User Section
     this.buttonOpenerClick = () => {
       this.openDialogButton();
       document.getElementById("addUserModalDialog").open();
@@ -98,6 +101,25 @@ define([
     ]);
 
     // Table
+    // Table Columns
+    this.columnArray = [
+      { headerText: "Name", field: "name", resizable: "enabled", id: "name" },
+      {
+        headerText: "Email",
+        field: "email",
+        resizable: "enabled",
+        id: "email",
+      },
+      { headerText: "Age", field: "age", resizable: "enabled", id: "age" },
+      {
+        headerText: "Actions",
+        sortable: "disabled",
+        template: "actionsTemplate",
+        id: "actions",
+      },
+    ];
+
+    // Table Data
     this.tableUserData = ko.observableArray([]);
     fetch("http://localhost:8080/api/v1/users")
       .then((response) => response.json())
@@ -111,6 +133,28 @@ define([
       keyAttributes: "id",
       implicitSort: [{ attribute: "id", direction: "ascending" }],
     });
+
+    // Table Actions
+    // Delete User Button
+    this.deleteUserButtonClick = (event, context) => {
+      const confirmText = "Are you sure you want to delete this user?";
+
+      if (!confirm(confirmText)) {
+        return;
+      }
+
+      const userId = context.item.data.id;
+
+      fetch(`http://localhost:8080/api/v1/users/${userId}`, {
+        method: "DELETE",
+      })
+        .then(() => {
+          this.tableUserData.remove((user) => user.id === userId);
+        })
+        .catch((error) => {
+          console.error("Error deleting user:", error);
+        });
+    };
 
     // Footer
     this.footerLinks = [
