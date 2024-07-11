@@ -154,6 +154,10 @@ define([
           },
           body: JSON.stringify(userFormData),
         });
+        if (!response.ok) {
+          alert("Failed to add user");
+          return;
+        }
         const data = await response.json();
         this.tableUserData.push(data);
       } catch (error) {
@@ -205,6 +209,10 @@ define([
           },
           body: JSON.stringify(userFormData),
         });
+        if (!response.ok) {
+          alert("Failed to update user");
+          return;
+        }
         const data = await response.json();
         const userIndex = this.tableUserData().findIndex(
           (user) => user.id === userId
@@ -227,9 +235,13 @@ define([
       const userId = context.item.data.id;
 
       try {
-        await fetch(this.baseUrl + "/users/" + userId, {
+        const response = await fetch(this.baseUrl + "/users/" + userId, {
           method: "DELETE",
         });
+        if (!response.ok) {
+          alert("Failed to delete user");
+          return;
+        }
         this.tableUserData.remove((user) => user.id === userId);
       } catch (error) {
         console.error("Error deleting user:", error);
