@@ -203,7 +203,7 @@ define([
 
       try {
         const response = await fetch(this.baseUrl + "/users/" + userId, {
-          method: "POST",
+          method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
