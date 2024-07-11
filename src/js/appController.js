@@ -37,67 +37,14 @@ define([
     // Application Name used in Branding Area
     this.appName = ko.observable("User Api Demo");
 
-    // Dialog
+    // Base URL
+    this.baseUrl = "http://localhost:8080/api/v1";
+
+    // Dialog State
     this.openDialog = ko.observable(false);
-    this.closeDialog = () => {
-      this.openDialog(false);
-    };
-    this.openDialogButton = () => {
-      this.openDialog(true);
-    };
     this.userDialogTitle = ko.observable("Add User");
-    this.submitUserModalButtonClick = () => {
-      if (this.userDialogTitle() === "Add User") {
-        this.submitAddUserButtonClick();
-      } else {
-        this.submitEditUserButtonClick();
-      }
-    };
 
-    // Add User Section
-    this.buttonOpenerClick = () => {
-      this.openDialogButton();
-      this.userDialogTitle("Add User");
-      this.resetUserForm();
-      document.getElementById("userModalDialog").open();
-    };
-    this.submitAddUserButtonClick = () => {
-      const userFormData = {
-        name: this.userName(),
-        email: this.userEmail(),
-        age: this.userAge(),
-      };
-
-      if (
-        !userFormData.name ||
-        !userFormData.email ||
-        !userFormData.age ||
-        isNaN(userFormData.age)
-      ) {
-        alert("Please fill out all fields correctly.");
-        return;
-      }
-
-      fetch("http://localhost:8080/api/v1/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userFormData),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          this.tableUserData.push(data);
-        })
-        .catch((error) => {
-          console.error("Error adding user:", error);
-        });
-
-      this.closeDialog();
-      document.getElementById("userModalDialog").close();
-    };
-
-    // User Form
+    // User Form Fields
     this.userId = ko.observable();
     this.userName = ko.observable("");
     this.userEmail = ko.observable("");
@@ -110,6 +57,7 @@ define([
         messageDetail: "Not a valid email format",
       }),
     ]);
+
     this.resetUserForm = () => {
       this.userId(null);
       this.userName("");
@@ -138,23 +86,87 @@ define([
 
     // Table Data
     this.tableUserData = ko.observableArray([]);
-    fetch("http://localhost:8080/api/v1/users")
-      .then((response) => response.json())
-      .then((data) => {
-        this.tableUserData(data);
-      })
-      .catch((error) => {
-        console.error("Error fetching users:", error);
-      });
     this.dataProvider = new ArrayDataProvider(this.tableUserData, {
       keyAttributes: "id",
       implicitSort: [{ attribute: "id", direction: "ascending" }],
     });
 
-    // Table Actions
-    // Edit User Button
-    this.editUserButtonOpenerClick = (event, context) => {
+    // Fetch Users
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch(this.baseUrl + "/users");
+        const data = await response.json();
+        this.tableUserData(data);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
+    fetchUsers();
+
+    // Open Dialog
+    this.openDialogButton = () => {
+      this.openDialog(true);
+    };
+
+    // Close Dialog
+    this.closeDialog = () => {
+      this.openDialog(false);
+      this.resetUserForm();
+    };
+
+    // Handle Add/Edit User Modal Submit
+    this.submitUserModalButtonClick = () => {
+      if (this.userDialogTitle() === "Add User") {
+        this.submitAddUserButtonClick();
+      } else {
+        this.submitEditUserButtonClick();
+      }
+    };
+
+    // Add User
+    this.buttonOpenerClick = () => {
+      this.userDialogTitle("Add User");
       this.openDialogButton();
+      document.getElementById("userModalDialog").open();
+    };
+
+    this.submitAddUserButtonClick = async () => {
+      const userFormData = {
+        name: this.userName(),
+        email: this.userEmail(),
+        age: this.userAge(),
+      };
+
+      if (
+        !userFormData.name ||
+        !userFormData.email ||
+        isNaN(userFormData.age)
+      ) {
+        alert("Please fill out all fields correctly.");
+        return;
+      }
+
+      try {
+        const response = await fetch(this.baseUrl + "/users", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(userFormData),
+        });
+        const data = await response.json();
+        this.tableUserData.push(data);
+      } catch (error) {
+        console.error("Error adding user:", error);
+      } finally {
+        this.closeDialog();
+        document.getElementById("userModalDialog").close();
+      }
+    };
+
+    // Table Actions
+    // Edit User
+    this.editUserButtonOpenerClick = (event, context) => {
       this.userDialogTitle("Edit User");
 
       this.userId(context.item.data.id);
@@ -162,9 +174,11 @@ define([
       this.userEmail(context.item.data.email);
       this.userAge(context.item.data.age);
 
+      this.openDialogButton();
       document.getElementById("userModalDialog").open();
     };
-    this.submitEditUserButtonClick = () => {
+
+    this.submitEditUserButtonClick = async () => {
       const userFormData = {
         id: this.userId(),
         name: this.userName(),
@@ -175,7 +189,6 @@ define([
       if (
         !userFormData.name ||
         !userFormData.email ||
-        !userFormData.age ||
         isNaN(userFormData.age)
       ) {
         alert("Please fill out all fields correctly.");
@@ -184,49 +197,43 @@ define([
 
       const userId = userFormData.id;
 
-      fetch(`http://localhost:8080/api/v1/users/${userId}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userFormData),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          const userIndex = this.tableUserData().findIndex(
-            (user) => user.id === userId
-          );
-          this.tableUserData.splice(userIndex, 1, data);
-        })
-        .finally(() => {
-          this.resetUserForm();
-        })
-        .catch((error) => {
-          console.error("Error updating user:", error);
+      try {
+        const response = await fetch(this.baseUrl + "/users/" + userId, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(userFormData),
         });
-
-      this.closeDialog();
-      document.getElementById("userModalDialog").close();
+        const data = await response.json();
+        const userIndex = this.tableUserData().findIndex(
+          (user) => user.id === userId
+        );
+        this.tableUserData.splice(userIndex, 1, data);
+      } catch (error) {
+        console.error("Error updating user:", error);
+      } finally {
+        this.closeDialog();
+        document.getElementById("userModalDialog").close();
+      }
     };
-    // Delete User Button
-    this.deleteUserButtonClick = (event, context) => {
-      const confirmText = "Are you sure you want to delete this user?";
 
-      if (!confirm(confirmText)) {
+    // Delete User
+    this.deleteUserButtonClick = async (event, context) => {
+      if (!confirm("Are you sure you want to delete this user?")) {
         return;
       }
 
       const userId = context.item.data.id;
 
-      fetch(`http://localhost:8080/api/v1/users/${userId}`, {
-        method: "DELETE",
-      })
-        .then(() => {
-          this.tableUserData.remove((user) => user.id === userId);
-        })
-        .catch((error) => {
-          console.error("Error deleting user:", error);
+      try {
+        await fetch(this.baseUrl + "/users/" + userId, {
+          method: "DELETE",
         });
+        this.tableUserData.remove((user) => user.id === userId);
+      } catch (error) {
+        console.error("Error deleting user:", error);
+      }
     };
 
     // Footer
